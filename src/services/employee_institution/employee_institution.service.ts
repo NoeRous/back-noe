@@ -62,9 +62,9 @@ export class EmployeeInstitutionService {
         const person: Person = await this.personRepository.findOneBy({ id: user.person.id });
         const employee: Employee = await this.employeeRepository.findOne({relations:['employeeInstitution.institution'], where: { person:{id:person.id}}});
 
-        if (!employee) {
-            throw new NotFoundException('Usted no tiene acceso a las bandejas por que no es es un Empleado');
-        }
+        // if (!employee) {
+        //     throw new NotFoundException('Usted no tiene acceso a las bandejas por que no es es un Empleado');
+        // }
         const employeeInstitutions: EmployeeInstitution[] = await this.employeeInstitutionRepository.find({relations: ['institution'], where: { employee: { id: employee.id }, announcement: { id: announcementId } } });
         return employeeInstitutions
     }

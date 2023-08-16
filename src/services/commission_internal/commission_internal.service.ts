@@ -11,6 +11,6 @@ export class CommissionInternalService {
     ){}
 
     async findCommissionByPerson(personId:number): Promise<CommissionInternal[]>{
-        return this.commissionInternalRepository.find({ relations:['commission.phase','commission.commissionHeadquarter'],where:{person:{id:personId}},order:{created_at:'DESC'}});
+        return this.commissionInternalRepository.find({ relations:['commission.phase','commission.commissionAssigned.announcementInstitutionPosition.institutionPosition.institution','commission.commissionAssigned.announcementInstitutionPosition.institutionPosition.position','commission.commissionHeadquarter'],where:{person:{id:personId}},order:{created_at:'DESC'}});
     }
 }

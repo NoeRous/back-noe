@@ -22,7 +22,7 @@ export class TParPositionTypeController {
     @Get(':id')
     @ApiOperation({ summary: 'Obtener un tipo de cargo' })
     @HttpCode(HttpStatus.OK)
-    findAccountById(@Param('id',ParseIntPipe) id:number){
+    findTParPositionTypeById(@Param('id',ParseIntPipe) id:number){
         return this.tParPositionTypeService.findById(id)
     } 
 
@@ -41,7 +41,7 @@ export class TParPositionTypeController {
     @Patch(':id')
     @ApiOperation({ summary: 'Actualizar tipos de cargo' })
     @HttpCode(HttpStatus.OK)
-    async updateAccountById(@Param('id', ParseIntPipe) id: number, @Body() updateData: Partial<UpdateTParPositionTypeDto>) {
+    async updateTParPositionTypeById(@Param('id', ParseIntPipe) id: number, @Body() updateData: Partial<UpdateTParPositionTypeDto>) {
         return this.tParPositionTypeService.updateById(id, updateData);
     }
 

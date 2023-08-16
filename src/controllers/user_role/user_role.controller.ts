@@ -33,7 +33,7 @@ export class UserRoleController {
     @HttpCode(HttpStatus.OK)
     @ApiResponse({ status: 201, description: 'The record has been successfully created.'})
     @ApiResponse({ status: 403, description: 'Forbidden.'})
-    async updateAccountById(@Param('id', ParseIntPipe) id: number, @Body() updateData: Partial<UpdateUserRolDto>,@Request() req) {
+    async updateUserRoleById(@Param('id', ParseIntPipe) id: number, @Body() updateData: Partial<UpdateUserRolDto>,@Request() req) {
         //updateData.updated_by = req.user.userId
         return this.userRoleService.updateById(id, updateData);
     }

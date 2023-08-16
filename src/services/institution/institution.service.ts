@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Institution } from 'src/modules/institution/institution.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 @Injectable()
 export class InstitutionService {
@@ -15,5 +15,14 @@ export class InstitutionService {
         return this.institutionRepository.find({ relations: {
             t_par_institution_type: true,
         },});
+    }
+
+    async findByArrayIds(ids: number[]): Promise<Institution[]> {
+        return this.institutionRepository.find({
+            where: {
+                id: In(ids),
+            },
+            order:{name:'ASC'}
+        });
     }
 }

@@ -1,5 +1,4 @@
 import { Column, CreateDateColumn, UpdateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, Unique, ManyToOne } from "typeorm";
-import { Account } from "../account/account.entity";
 import { TPartGender } from "../t_part_gender/t_part_gender.entity";
 import { Applicant } from "../aplicant/aplicant.entity";
 var md5 = require('md5');

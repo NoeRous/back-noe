@@ -1,12 +1,9 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Pagination, paginate, paginateRaw } from 'nestjs-typeorm-paginate';
-import { format } from 'path';
 import { CreatePostulationDto } from 'src/controllers/postulation/create-postulation.dto';
 import { Announcement } from 'src/modules/announcement/announcement.entity';
 import { AnnouncementInstitutionPosition } from 'src/modules/announcement_institution_position/announcement_institution_position.entity';
 import { Applicant } from 'src/modules/aplicant/aplicant.entity';
-import { Employee } from 'src/modules/employee/employee.entity';
-import { EmployeeInstitution } from 'src/modules/employee_institution/employee_institution.entity';
 import { Institution } from 'src/modules/institution/institution.entity';
 import { InstitutionPosition } from 'src/modules/institution_position/institution_position.entity';
 import { Person } from 'src/modules/person/person.entity';
@@ -20,6 +17,7 @@ import { Role } from 'src/modules/role/role.entity';
 import { TParPositionType } from 'src/modules/t_par_position_type/t_par_position_type.entity';
 import { User } from 'src/user/user.entity';
 import { Repository } from 'typeorm';
+import { PhaseService } from '../phase/phase.service';
 
 @Injectable()
 export class PostulationService {
@@ -47,10 +45,7 @@ export class PostulationService {
         private postulationPhaseRepository: Repository<PostulationPhase>,
         @Inject('POSTULATION_TEST_REPOSITORY')
         private postulationTestRepository: Repository<PostulationTest>,
-        @Inject('EMPLOYEE_REPOSITORY')
-        private employeeRepository: Repository<Employee>,
-        @Inject('EMPLOYEE_INSTITUTION_REPOSITORY')
-        private employeeInstitutionRepository: Repository<EmployeeInstitution>,
+        private phaseService: PhaseService
     ){}
 
     async create(postulation: CreatePostulationDto,req_user:any): Promise<Postulation> {
@@ -64,9 +59,9 @@ export class PostulationService {
                 throw new NotFoundException('No esta registrado como postulante');
             }
             const institutionPosition: InstitutionPosition = await this.institutionPositionRepository.findOne({ where: {institution:{ id : postulation.institution_id},position:{id:postulation.position_id}}})
-            const announcementInstitutionPosition: AnnouncementInstitutionPosition = await this.announcementInstitutionPositionRepository.findOne({where: {institutionPosition:{id:institutionPosition.id},announcement:{id:postulation.announcent_id}}}) 
+            const announcementInstitutionPosition: AnnouncementInstitutionPosition = await this.announcementInstitutionPositionRepository.findOne({where: {institutionPosition:{id:institutionPosition.id},announcement:{id:postulation.announcement_id}}}) 
             const postulationState: PostulationState = await this.postulationStateRepository.findOne({where:{name:'EN PROCESO'}});
-            const phase: Phase = await this.phaseRepository.findOne({where:{announcement:{id:postulation.announcent_id},sequence:1}});
+            const phase: Phase = await this.phaseRepository.findOne({where:{announcement:{id:postulation.announcement_id},sequence:1}});
             const postulationNew = new Postulation();
             postulationNew.voucher = postulation.voucher
             postulationNew.voucher_url = postulation.voucher_url
@@ -96,6 +91,9 @@ export class PostulationService {
         const user: User = await this.userRepository.findOne({relations:{person:true},where: {id:req_user.userId}});
         const person: Person = await this.personRepository.findOneBy({id:user.person.id})
         const aplicant: Applicant = await this.applicantRepository.findOne({where:{person:{id:person.id}}})
+
+        if(!aplicant)
+            throw new NotFoundException('Postulante no encontrado!');
         //
         const query = this.postulationRepository.createQueryBuilder('p')
             .select('a.name', 'announcement_name')
@@ -120,46 +118,11 @@ export class PostulationService {
             .getRawMany();
 
             const result = await query;
-
             return result;
     }
 
-    async inbox(req_user: any, page: number, limit: number,announcementId:number, institutionId:number): Promise<Pagination<any>> { 
-        
-        console.log('institutionId  -->',institutionId)
-        const user: User = await this.userRepository.findOne({ relations: { person: true }, where: { id: req_user.userId } });
-        const person: Person = await this.personRepository.findOneBy({ id: user.person.id });
-      
-        const role: Role = await this.roleRepository.findOne({ where: { id: req_user.roleId } });
+      async inbox(announcementInstitutionPositionIds:number[],phaseCurrentId:number): Promise<any> { 
 
-        const employee: Employee = await this.employeeRepository.findOne({relations:['employeeInstitution.institution'], where: { person:{id:person.id}}});
-
-        if (!employee) {
-            throw new NotFoundException('Usted no tiene acceso a las bandejas por que no es es un Empleado');
-        }
-
-        const employeeInstitutions : EmployeeInstitution[] = await this.employeeInstitutionRepository.find({relations:['institution'],where:{employee:{id:employee.id},announcement:{id:announcementId}}});
-
-        console.log('employeeInstitutions: ',employeeInstitutions);
-        if (employeeInstitutions.length == 0 && institutionId == 0 ) {
-            throw new NotFoundException('Usted no tiene acceso a las bandejas ya que no tiene asignado Institucion(es)');
-        }
-        const institutions = [];
-
-        if (institutionId > 0) {
-            institutions.push(institutionId);
-        }else{
-            for(let employeeInstitution of employeeInstitutions){
-                institutions.push(employeeInstitution.institution.id);
-            }
-        }
-
-        const phase: Phase = await this.phaseRepository.findOne({ where: { role: { id: role.id },announcement:{id: announcementId } } }); //ojo solo un rol
-      
-        if (!phase) {
-          throw new NotFoundException('Usted no tiene acceso a las bandejas con su Rol o no pertenece al flujo de la convocatoria');
-        }
-    
         const query = this.postulationRepository.createQueryBuilder('p')
           .select('a.name', 'announcement_name')
           .addSelect('i.name', 'institution_name')
@@ -188,14 +151,22 @@ export class PostulationService {
           .innerJoin(Phase, 'ph', 'ph.id = p.current_phase_id')
           .innerJoin(Applicant, 'ap', 'ap.id = p.applicant.id')
           .innerJoin(Person, 'pe', 'pe.id = ap.person_id')
-          .where('p.current_phase_id = :phaseId', { phaseId: phase.id })
-          .andWhere('a.id = :announcementId', { announcementId: announcementId })
-          .andWhere("i.id IN (:...institutions)", {institutions: institutions });
-         // .where("user.name IN (:...names)", { names: [ "Timber", "Cristal", "Lina" ] })
+          .where('p.current_phase_id = :phaseId', { phaseId: phaseCurrentId })
+        //   .andWhere('a.id = :announcementId', { announcementId: announcementId })
+          .andWhere("aip.id IN (:...announcementInstitutionPositionIds)", {announcementInstitutionPositionIds: announcementInstitutionPositionIds })
+          .getRawMany();
+
+          const result = await query;
+
+          return result;
+
+          
+          //.andWhere("i.id IN (:...institutions)", {institutions: institutionId })
+
       
-        const result = await paginateRaw(query, { page, limit });
+        // const result = await paginateRaw(query, { page, limit });
       
-        return result;
+        // return result;
       }
 
       async updateIsvalid(isValid:boolean, postulations: any[],req:any): Promise<any> {
@@ -215,25 +186,24 @@ export class PostulationService {
         }
       }
 
-      async derived(next_phase_id:number, postulation_id: number,req_user:any): Promise<any> {
+      async derived(announcementId:number,next_phase_id:number, postulation_id: number,req_user:any): Promise<any> {
         try{
-            //adionar la convocatoria
             const user: User = await this.userRepository.findOne({ relations: { person: true }, where: { id: req_user.userId } });
-            const role: Role = await this.roleRepository.findOne({ where: { id: req_user.roleId } });
-            const previusPhase: Phase = await this.phaseRepository.findOne({ where: { role: { id: role.id } } }); //ojo solo un rol
+            //aqui adicionar phase actual de la comvocatoria seleccionada 
+            const currentPhase:Phase[] = await this.phaseService.findPhaseByAnnouncementCurrent(announcementId);
+            if(currentPhase.length<1){
+                throw new NotFoundException('Su usuario no pertenece a ninguna comisión de la Fase actual para la bandeja');
+            }
+            const previusPhase: Phase = currentPhase[0]; 
             if(next_phase_id == 0){
                 throw new NotFoundException('Seleccione la fase a derivar');   
             }
             const nextPhase: Phase = await this.phaseRepository.findOne({where:{id:next_phase_id} });
 
-
-
-
-            // for(let postulation of postulations ){
-                
                 let post = await this.postulationRepository.findOne({where:{id:postulation_id}});
-                post.is_valid = false
-                post.currentPhase = nextPhase
+                post.is_valid = false;
+                post.currentPhase = nextPhase;
+                post.updated_by = req_user.userId;
                 await this.postulationRepository.save(post)
 
                 let postulationPhaseNew = new PostulationPhase();
@@ -246,7 +216,6 @@ export class PostulationService {
                 postulationPhaseNew.qualification = 0;
 
                 await this.postulationPhaseRepository.save(postulationPhaseNew)
-            // }
 
             return true;
 

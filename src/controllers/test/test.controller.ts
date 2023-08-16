@@ -24,7 +24,7 @@ export class TestController {
     @Get(':id')
     @ApiOperation({ summary: 'Obtener un Examen' })
     @HttpCode(HttpStatus.OK)
-    findAccountById(@Param('id',ParseIntPipe) id:number){
+    findTestById(@Param('id',ParseIntPipe) id:number){
         return this.testService.findById(id)
     } 
 
@@ -46,7 +46,7 @@ export class TestController {
     @HttpCode(HttpStatus.OK)
     @ApiResponse({ status: 201, description: 'The record has been successfully created.'})
     @ApiResponse({ status: 403, description: 'Forbidden.'})
-    async updateAccountById(@Param('id', ParseIntPipe) id: number, @Body() updateData: Partial<UpdateTestDto>,@Request() req) {
+    async updateTestById(@Param('id', ParseIntPipe) id: number, @Body() updateData: Partial<UpdateTestDto>,@Request() req) {
         updateData.updated_by = req.user.userId
         return this.testService.updateById(id, updateData);
     }

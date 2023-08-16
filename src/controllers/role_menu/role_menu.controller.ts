@@ -41,7 +41,7 @@ export class RoleMenuController {
     @Patch(':id')
     @ApiOperation({ summary: 'Actualizar Role Menu' })
     @HttpCode(HttpStatus.OK)
-    async updateAccountById(@Param('id', ParseIntPipe) id: number, @Body() updateData: Partial<updateRoleMenuDto>) {
+    async updateRoleMenuById(@Param('id', ParseIntPipe) id: number, @Body() updateData: Partial<updateRoleMenuDto>) {
         return this.roleMenuService.updateById(id, updateData);
     }
 

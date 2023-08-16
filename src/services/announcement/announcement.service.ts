@@ -45,7 +45,7 @@ export class AnnouncementService {
     async updateById(id: number, updateData: Partial<UpdateAnnouncementDto>): Promise<Announcement> {
         const announcement = await this.announcementRepository.findOneBy({id:id});
         if (!announcement) {
-            throw new NotFoundException('Account not found');
+            throw new NotFoundException('Convocatoria no encontrada!');
         }
         const updatedAnnouncement = Object.assign(announcement, updateData);   
         return this.announcementRepository.save(updatedAnnouncement);
@@ -54,7 +54,7 @@ export class AnnouncementService {
     async deleteById(id: number): Promise<void> {
         const updatedAnnouncement = await this.announcementRepository.findOneBy({id:id});
         if (!updatedAnnouncement) {
-          throw new NotFoundException('Account not found!');
+          throw new NotFoundException('Convocatoria no encontrada!');
         }
         await this.announcementRepository.delete(id);
     }

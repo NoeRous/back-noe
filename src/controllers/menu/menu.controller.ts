@@ -54,7 +54,7 @@ export class MenuController {
     @Patch(':id')
     @ApiOperation({ summary: 'Actualizar Menu' })
     @HttpCode(HttpStatus.OK)
-    async updateAccountById(@Param('id', ParseIntPipe) id: number, @Body() updateData: Partial<UpdateMenuDto>) {
+    async updateMenuById(@Param('id', ParseIntPipe) id: number, @Body() updateData: Partial<UpdateMenuDto>) {
         return this.menuService.updateById(id, updateData);
     }
 

@@ -1,7 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Announcement } from 'src/modules/announcement/announcement.entity';
 import { AnnouncementInstitutionPosition } from 'src/modules/announcement_institution_position/announcement_institution_position.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 @Injectable()
 export class AnnouncementInstitutionPositionService {
@@ -46,5 +46,22 @@ export class AnnouncementInstitutionPositionService {
 
         return this.announcementInstitutionPositionRepository.find({relations:{announcement:true}})
        // return this.announcementInstitutionPositionRepository.findOne({ relations: ['announcement', 'announcement'] });
+    }
+
+    async findAnnouncementInstitutionPosition(announcementId: number,institutionId:number,positionId:number): Promise<any> {
+        const announcementInstitutionPosition = await this.announcementInstitutionPositionRepository.find({where:{institutionPosition:{institution:{id:institutionId},position:{id:positionId}},announcement:{id:announcementId}}})
+        if (announcementInstitutionPosition.length < 1) {
+            throw new NotFoundException("No se encontro la convocatoria, institución y cargo");
+        }
+        return announcementInstitutionPosition;
+    }
+
+    async findByArrayIds(ids: number[]): Promise<AnnouncementInstitutionPosition[]> {
+        return this.announcementInstitutionPositionRepository.find({
+            where: {
+                id: In(ids),
+            },
+            order:{id:'ASC'}
+        });
     }
 }

@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
-import { AccountModule } from './modules/account/account.module';
 import { PersonModule } from './modules/person/person.module';
 import { AuthModule } from './auth/auth.module';
 import { TPartGenderModule } from './modules/t_part_gender/t_part_gender.module';
@@ -48,7 +47,7 @@ import { CommissionExternalModule } from './modules/commission_external/commissi
 import { CommissionAssignedModule } from './modules/commission_assigned/commission_assigned.module';
 
 @Module({
-  imports: [AccountModule,
+  imports: [
     UserModule,
     PersonModule, 
     AuthModule, 

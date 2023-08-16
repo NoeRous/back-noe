@@ -23,7 +23,7 @@ export class QuestionCategoryController {
     @Get(':id')
     @ApiOperation({ summary: 'Obtener una categoria de pregunta' })
     @HttpCode(HttpStatus.OK)
-    findAccountById(@Param('id',ParseIntPipe) id:number){
+    findQuestionCategoryById(@Param('id',ParseIntPipe) id:number){
         return this.questionCategoryService.findById(id)
     } 
 
@@ -42,7 +42,7 @@ export class QuestionCategoryController {
     @Patch(':id')
     @ApiOperation({ summary: 'Actualizar categoria de pregunta' })
     @HttpCode(HttpStatus.OK)
-    async updateAccountById(@Param('id', ParseIntPipe) id: number, @Body() updateData: Partial<UpdateQuestionCategoryDto>) {
+    async updateQuestionCategoryById(@Param('id', ParseIntPipe) id: number, @Body() updateData: Partial<UpdateQuestionCategoryDto>) {
         return this.questionCategoryService.updateById(id, updateData);
     }
 

@@ -9,11 +9,13 @@ export class PhaseController {
     constructor(private phaseService:PhaseService){}
 
     @UseGuards(AuthGuard)
-    @Get('next-phase')
+    @Get('next-phase/:announcementId')
     @ApiOperation({ summary: 'Obtener lass fases disponibles' })
     @HttpCode(HttpStatus.OK)
-    async findNextPhase(@Request() req){
-        return this.phaseService.findNextPhase(req.user)
+    async findNextPhase(
+        @Param('announcementId', ParseIntPipe) announcementId: number,
+        @Request() req){
+        return this.phaseService.findNextPhase(announcementId)
     }
 
     @UseGuards(AuthGuard)

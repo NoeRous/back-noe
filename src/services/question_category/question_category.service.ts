@@ -29,7 +29,7 @@ export class QuestionCategoryService {
     async updateById(id: number, updateData: Partial<UpdateQuestionCategoryDto>): Promise<QuestionCategory> {
         const announcement = await this.questionCategoryRepository.findOneBy({id:id});
         if (!announcement) {
-            throw new NotFoundException('Account not found');
+            throw new NotFoundException('Categoria no encontrada!');
         }
         const updatedQuestionCategory = Object.assign(announcement, updateData);
         return this.questionCategoryRepository.save(updatedQuestionCategory);
@@ -38,7 +38,7 @@ export class QuestionCategoryService {
     async deleteById(id: number): Promise<void> {
         const questionCategory = await this.questionCategoryRepository.findOneBy({id:id});
         if (!questionCategory) {
-          throw new NotFoundException('Account not found!');
+          throw new NotFoundException('Categoria no encontrada!');
         }
         await this.questionCategoryRepository.delete(id);
     }

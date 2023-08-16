@@ -50,7 +50,7 @@ export class TestGroupController {
     @HttpCode(HttpStatus.OK)
     @ApiResponse({ status: 201, description: 'The record has been successfully created.'})
     @ApiResponse({ status: 403, description: 'Forbidden.'})
-    async updateAccountById(@Param('id', ParseIntPipe) id: number, @Body() updateData: Partial<UpdateTestGroupDto>,@Request() req) {
+    async updateTestGroupById(@Param('id', ParseIntPipe) id: number, @Body() updateData: Partial<UpdateTestGroupDto>,@Request() req) {
         updateData.updated_by = req.user.userId
         return this.testGroupService.updateById(id, updateData);
     }

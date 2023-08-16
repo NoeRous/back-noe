@@ -42,7 +42,7 @@ export class QuestionController {
     @Get(':id')
     @ApiOperation({ summary: 'Obtener una pregunta' })
     @HttpCode(HttpStatus.OK)
-    findAccountById(@Param('id',ParseIntPipe) id:number){
+    findQuestionById(@Param('id',ParseIntPipe) id:number){
         return this.questionService.findById(id)
     } 
 
@@ -64,7 +64,7 @@ export class QuestionController {
     @HttpCode(HttpStatus.OK)
     @ApiResponse({ status: 201, description: 'The record has been successfully created.'})
     @ApiResponse({ status: 403, description: 'Forbidden.'})
-    async updateAccountById(@Param('id', ParseIntPipe) id: number, @Body() updateData: Partial<UpdateQuestionDto>,@Request() req) {
+    async updateQuestionById(@Param('id', ParseIntPipe) id: number, @Body() updateData: Partial<UpdateQuestionDto>,@Request() req) {
         updateData.updated_by = req.user.userId
         return this.questionService.updateById(id, updateData);
     }

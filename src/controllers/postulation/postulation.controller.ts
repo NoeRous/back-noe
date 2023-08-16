@@ -4,18 +4,18 @@ import { ApplicantService } from 'src/services/applicant/applicant.service';
 import { CreatePostulationDto } from './create-postulation.dto';
 import { PostulationService } from 'src/services/postulation/postulation.service';
 import { AuthGuard } from 'src/auth/auth.guard';
-import { UserService } from 'src/user/user.service';
-import { CommissionInternalService } from 'src/services/commission_internal/commission_internal.service';
 import { PhaseService } from 'src/services/phase/phase.service';
+import { AnnouncementInstitutionPositionService } from 'src/services/announcement_institution_position/announcement_institution_position.service';
+import { CommissionAssignedService } from 'src/services/commission_assigned/commission_assigned.service';
 
 @ApiTags('Postulacion')
 @Controller('postulation')
 export class PostulationController {
 
     constructor(private readonly _postulationService: PostulationService,
-        private userService : UserService,
-        private commissionInternalService : CommissionInternalService,
-        private phaseService: PhaseService
+        private phaseService: PhaseService,
+        private announcementInstitutionPositionService : AnnouncementInstitutionPositionService,
+        private commissionAssignedService: CommissionAssignedService
     ){}
     
     @UseGuards(AuthGuard)
@@ -45,6 +45,7 @@ export class PostulationController {
         return responsePostulation
     }
 
+
     @UseGuards(AuthGuard)
     @Get('/inbox/:announcementId')
     @ApiOperation({ summary: 'Listado de bandejas'})
@@ -53,41 +54,32 @@ export class PostulationController {
         @Param('announcementId', ParseIntPipe) announcementId: number,
         @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
         @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-        @Query('intitutionId', new DefaultValuePipe(0), ParseIntPipe) intitutionId: number,
-        
-    ){
-
-        return this._postulationService.inbox(req.user, page, limit, announcementId,intitutionId);
-
-    }
-
-    @UseGuards(AuthGuard)
-    @Get('/inboxNew/:announcementId')
-    @ApiOperation({ summary: 'Listado de bandejas'})
-    @HttpCode(HttpStatus.OK)
-    async inboxNew(@Request() req,
-        @Param('announcementId', ParseIntPipe) announcementId: number,
-        @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-        @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-        @Query('intitutionId', new DefaultValuePipe(0), ParseIntPipe) intitutionId: number,
+        @Query('institutionId', new DefaultValuePipe(0), ParseIntPipe) institutionId: number,
         @Query('positionId', new DefaultValuePipe(0), ParseIntPipe) positionId: number, 
     ){
+        let idsArray = [];
         const phaseCurrent = await this.phaseService.findPhaseByAnnouncementCurrent(announcementId);
 
         if(phaseCurrent.length > 1)
             throw new NotFoundException('Existe mas de una fase activa, favor de comunicarse con su encargado!');
         if(phaseCurrent.length == 0)
             throw new NotFoundException('No existe fase activa a la fecha!');
-
         
+        if(institutionId > 0 &&  positionId > 0 ){
+            const announcementInstitutionPosition = await this.announcementInstitutionPositionService.findAnnouncementInstitutionPosition(announcementId,institutionId,positionId);
+            idsArray = announcementInstitutionPosition.map(announcementInstitutionPosition => announcementInstitutionPosition.id);
+        }else if(institutionId > 0){
+            const announcementInstitutionPosition = await this.commissionAssignedService.commissionAssinedByPhase(req.user,phaseCurrent[0])
+            const filteredinstituttions = announcementInstitutionPosition.filter(announcementInstitutionPosition => announcementInstitutionPosition.announcementInstitutionPosition.institutionPosition.institution.id === institutionId);
+            idsArray = filteredinstituttions.map(filteredinstituttions => filteredinstituttions.announcementInstitutionPosition.id);
+
+        }else{
+
+           const announcementInstitutionPosition = await this.commissionAssignedService.commissionAssignedInstitutionPositions(req.user,phaseCurrent[0])
+           idsArray = announcementInstitutionPosition.map(announcementInstitutionPosition => announcementInstitutionPosition.id);
+        }
         
-
-        const user = await this.userService.findById(req.user.userId)
-
-        const commissioninternal = await this.commissionInternalService.findCommissionByPerson(user.person.id);
-
-        return phaseCurrent;
-
+        return await this._postulationService.inbox(idsArray,phaseCurrent[0].id);
     }
 
     @UseGuards(AuthGuard)
@@ -123,7 +115,7 @@ export class PostulationController {
     async derived(
         @Body() postulations: Partial<any>,@Request() req
     ) {
-        return this._postulationService.derived(postulations.next_phase_id,postulations.postulation_id,req.user);
+        return this._postulationService.derived(postulations.announcement_id,postulations.next_phase_id,postulations.postulation_id,req.user);
     }
 
     @UseGuards(AuthGuard)

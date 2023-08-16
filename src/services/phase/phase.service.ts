@@ -13,7 +13,7 @@ export class PhaseService {
         @Inject('ROLE_REPOSITORY')
         private roleRepository: Repository<Role>,
         @Inject('PHASE_SEQUENCE_REPOSITORY')
-        private phaseSequenceRepository: Repository<PhaseSequence>,
+        private phaseSequenceRepository: Repository<PhaseSequence>
       
     ){}
 
@@ -21,14 +21,12 @@ export class PhaseService {
     //     return this.announcementRepository.find();
     // }
 
-    async findNextPhase(req_user:any): Promise<PhaseSequence[]>{
-        //adicionar convocatoria
-        const role: Role = await this.roleRepository.findOne({ where: { id: req_user.roleId } });//aqui debera incluirse a la convocatori
-        const currentPhase: Phase = await this.phaseRepository.findOne({ where: { role: { id: role.id } } }); //ojo solo un rol
-        if(!currentPhase){
-            throw new NotFoundException('Su rol no pertenece a ninguna Fase para la bandeja');
+    async findNextPhase(announcementId:number): Promise<PhaseSequence[]>{
+        const currentPhase: Phase[] = await this.findPhaseByAnnouncementCurrent(announcementId);
+        if(currentPhase.length<1){
+            throw new NotFoundException('Su usurio no pertenece a ninguna comisión de la Fase actual para la bandeja');
         }
-        return await this.phaseSequenceRepository.find({ relations:['nextPhase'], where: { currentPhase:{id:currentPhase.id} } }); //ojo solo un rol
+        return await this.phaseSequenceRepository.find({ relations:['nextPhase'], where: { currentPhase:{id:currentPhase[0].id} } });
     }
 
     async findPhaseByAnnouncement(req_user:any,announcementId:number): Promise<Phase[]>{

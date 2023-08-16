@@ -16,5 +16,5 @@ export class CreatePostulationDto{
     position_id: number
 
     @IsNotEmpty()
-    announcent_id: number
+    announcement_id: number
 }

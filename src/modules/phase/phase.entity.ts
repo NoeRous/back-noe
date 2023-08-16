@@ -1,7 +1,8 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Announcement } from "../announcement/announcement.entity";
 import { User } from "src/user/user.entity";
 import { Role } from "../role/role.entity";
+import { Commission } from "../commission/commission.entity";
 
 @Entity({schema:'public',name:'phase'})
 export class Phase{
@@ -45,6 +46,9 @@ export class Phase{
     @ManyToOne(() => Role, (Role) => Role,{nullable:false})
     @JoinColumn({name: 'role_id'})
     role: Role
+
+    @OneToMany(() => Commission, commission => commission.phase)
+    commission: Commission[];
 
     //columnas para auditoria
     @CreateDateColumn()

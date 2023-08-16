@@ -40,7 +40,7 @@ export class AnnouncementController {
     @Get(':id')
     @ApiOperation({ summary: 'Obtener una convocatoria' })
     @HttpCode(HttpStatus.OK)
-    findAccountById(@Param('id',ParseIntPipe) id:number){
+    findAnnouncementById(@Param('id',ParseIntPipe) id:number){
         return this.announcementService.findById(id)
     } 
 
@@ -60,7 +60,7 @@ export class AnnouncementController {
     @Patch(':id')
     @ApiOperation({ summary: 'Actualizar convocatoria' })
     @HttpCode(HttpStatus.OK)
-    async updateAccountById(@Param('id', ParseIntPipe) id: number, @Body() updateData: Partial<UpdateAnnouncementDto>) {
+    async updateAnnouncementById(@Param('id', ParseIntPipe) id: number, @Body() updateData: Partial<UpdateAnnouncementDto>) {
         return this.announcementService.updateById(id, updateData);
     }
 

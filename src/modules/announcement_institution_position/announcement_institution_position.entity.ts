@@ -1,8 +1,9 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from "typeorm"
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Unique } from "typeorm"
 import { Announcement } from "../announcement/announcement.entity"
 import { InstitutionPosition } from "../institution_position/institution_position.entity"
 
 @Entity({ schema: 'public', name: 'announcement_institution_position' })
+@Unique(['institutionPosition.id', 'announcement.id'])
 export class AnnouncementInstitutionPosition {
     @PrimaryGeneratedColumn()
     id: number

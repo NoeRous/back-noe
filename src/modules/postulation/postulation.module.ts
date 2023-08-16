@@ -23,7 +23,6 @@ import { RoleService } from 'src/services/role/role.service';
 import { roleProviders } from 'src/services/role/role.providers';
 import { PhaseSequenceService } from 'src/services/phase_sequence/phase_sequence.service';
 import { phaseSequenceProviders } from 'src/services/phase_sequence/phase_sequence.providers';
-import { PostulationPhase } from '../postulation_phase/postulation_phase.entity';
 import { PostulationPhaseService } from 'src/services/postulation_phase/postulation_phase.service';
 import { postulationPhaseProviders } from 'src/services/postulation_phase/postulation_phase.providers';
 import { PostulationTestService } from 'src/services/postulation_test/postulation_test.service';
@@ -50,6 +49,8 @@ import { InstitutionService } from 'src/services/institution/institution.service
 import { institutionProviders } from 'src/services/institution/institution.providers';
 import { CommissionInternalService } from 'src/services/commission_internal/commission_internal.service';
 import { commissionInternalProviders } from 'src/services/commission_internal/commission_internal.providers';
+import { CommissionAssignedService } from 'src/services/commission_assigned/commission_assigned.service';
+import { commissionAssignedProviders } from 'src/services/commission_assigned/commission_assigned.providers';
 
 @Module({
     imports: [DatabaseModule],
@@ -79,6 +80,7 @@ import { commissionInternalProviders } from 'src/services/commission_internal/co
         ...employeeInstitutionProviders,
         ...institutionProviders,
         ...commissionInternalProviders,
+        ...commissionAssignedProviders,
         PostulationService,
         AnnouncementInstitutionPositionService,
         ApplicantService,
@@ -102,7 +104,8 @@ import { commissionInternalProviders } from 'src/services/commission_internal/co
         EmployeeService,
         EmployeeInstitutionService,
         InstitutionService,
-        CommissionInternalService
+        CommissionInternalService,
+        CommissionAssignedService
     ]})
 export class PostulationModule {
 
